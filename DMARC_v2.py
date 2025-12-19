@@ -18,6 +18,7 @@ def parse_dmarc_file(file_path):
         dkim_result = record.find('.//auth_results/dkim/result').text if record.find('.//auth_results/dkim/result') is not None else ''
         spf_result = record.find('.//auth_results/spf/result').text if record.find('.//auth_results/spf/result') is not None else ''
         identifiers = record.find('.//identifiers')
+        envelope_to = identifiers.find('envelope_to').text if identifiers is not None and identifiers.find('envelope_to') is not None else ''
         envelope_from = identifiers.find('envelope_from').text if identifiers is not None and identifiers.find('envelope_from') is not None else ''
         header_from = identifiers.find('header_from').text if identifiers is not None and identifiers.find('header_from') is not None else ''
         auth_results = record.find('.//auth_results')
@@ -33,6 +34,7 @@ def parse_dmarc_file(file_path):
             'ip_count': ip_count,
             'dkim_result': dkim_result,
             'spf_result': spf_result,
+            'envelope_to': envelope_to,
             'envelope_from': envelope_from,
             'header_from': header_from,
             'dkim_domain': dkim_domain,
@@ -46,7 +48,7 @@ def parse_dmarc_file(file_path):
 
 def create_csv(dmarc_data_list, output_csv_path):
     with open(output_csv_path, 'w', newline='') as csvfile:
-        fieldnames = ['Report ID', 'Organization', 'Domain', 'Source IP', "IP Count", 'DKIM Result', 'SPF Result', 'Envelope From', 'Header From', 'DKIM Domain', 'SPF Domain', 'Selector']
+        fieldnames = ['Report ID', 'Organization', 'Domain', 'Source IP', "IP Count", 'DKIM Result', 'SPF Result', 'Envelope To','Envelope From', 'Header From', 'DKIM Domain', 'SPF Domain', 'Selector']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
         writer.writeheader()
@@ -60,6 +62,7 @@ def create_csv(dmarc_data_list, output_csv_path):
                 'IP Count': data['ip_count'],
                 'DKIM Result': data['dkim_result'],
                 'SPF Result': data['spf_result'],
+                'Envelope To' : data['envelope_to'],
                 'Envelope From': data['envelope_from'],
                 'Header From': data['header_from'],
                 'DKIM Domain': data['dkim_domain'],
@@ -68,7 +71,7 @@ def create_csv(dmarc_data_list, output_csv_path):
             })
 
 if __name__ == "__main__":
-    xml_files_directory = "c:\\temp\\dmarc"
+    xml_files_directory = "/home/user/files/DMARC"
     xml_files = [f for f in os.listdir(xml_files_directory) if f.endswith('.xml')]
 
     dmarc_data_list = []
@@ -77,5 +80,5 @@ if __name__ == "__main__":
         file_path = os.path.join(xml_files_directory, xml_file)
         dmarc_data_list.extend(parse_dmarc_file(file_path))
 
-    output_csv_path = "c:\\temp\\output.csv"
+    output_csv_path = "/home/user/files/DMARC/output.csv"
     create_csv(dmarc_data_list, output_csv_path)
